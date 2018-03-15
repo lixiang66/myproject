@@ -13,14 +13,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
  * Created by lixiang on 2018/3/13.
  */
-@Service
 public class UserDetailServiceImpl implements UserDetailsService {
 
         @Autowired
@@ -33,26 +32,25 @@ public class UserDetailServiceImpl implements UserDetailsService {
         private PasswordEncoder passwordEncoder;
 
         @Override
+        @Transactional(readOnly = true)
         public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                try {
-                        User user = userRepository.findById(username).get();
-                        user.setPassword(passwordEncoder.encode(user.getPassword()));
-                        Set<Role> roles = roleRepository.findAllByUsername(user.getUsername());
-                        user.setRoles(roles);
-
-                        if (!roles.isEmpty()) {
-                                Set<Integer> ids = Sets.newHashSet();
-                                for (Role role : roles) {
-                                        ids.add(role.getId());
-                                }
-                                Set<Permission> permissions = permissionRepository.findAllByRoleId(ids);
-                                user.setPermissions(permissions);
-                        }
-
-                        return user;
-                } catch (NoSuchElementException e) {
+                User user = userRepository.getOne(username);
+                if (user == null) {
                         throw new UsernameNotFoundException("用户不存在！");
                 }
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+                Set<Role> roles = roleRepository.findAllByUsername(user.getUsername());
+                user.setRoles(roles);
 
+                if (!roles.isEmpty()) {
+                        Set<Integer> ids = Sets.newHashSet();
+                        for (Role role : roles) {
+                                ids.add(role.getId());
+                        }
+                        Set<Permission> permissions = permissionRepository.findAllByRoleId(ids);
+                        user.setPermissions(permissions);
+                }
+
+                return user;
         }
 }
