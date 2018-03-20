@@ -11,6 +11,15 @@ public class ApplicaitonProperties {
         private String loginUrl;
 
         private String logoutRedirect;
+        private Integer uploadSize;
+
+        public Integer getUploadSize() {
+                return uploadSize;
+        }
+
+        public void setUploadSize(Integer uploadSize) {
+                this.uploadSize = uploadSize;
+        }
 
         public String getLoginUrl() {
                 return loginUrl;

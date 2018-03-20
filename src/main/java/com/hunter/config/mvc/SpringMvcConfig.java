@@ -3,9 +3,12 @@ package com.hunter.config.mvc;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.hunter.propertis.ApplicaitonProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.util.ArrayList;
@@ -16,6 +19,9 @@ import java.util.List;
  */
 @Configuration
 public class SpringMvcConfig extends WebMvcConfigurerAdapter {
+
+        @Autowired
+        private ApplicaitonProperties applicaitonProperties;
 
         @Override
         public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -31,5 +37,13 @@ public class SpringMvcConfig extends WebMvcConfigurerAdapter {
                 fastConverter.setFastJsonConfig(fastJsonConfig);
                 //将转换器添加到converters中
                 converters.add(fastConverter);
+        }
+
+        @Override
+        public void addInterceptors(InterceptorRegistry registry) {
+                //文件上传超过大小，防止链接重置
+                registry.addInterceptor(new MvcHandler(applicaitonProperties)).addPathPatterns("/**");
+
+                super.addInterceptors(registry);
         }
 }
